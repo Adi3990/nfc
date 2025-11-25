@@ -1,72 +1,61 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Card Access System</title>
-<style>
-body {
-  font-family: Arial, sans-serif;
-  text-align: center;
-  margin-top: 80px;
-}
-#status {
-  font-size: 30px;
-  margin-top: 40px;
-  font-weight: bold;
-}
-button {
-  padding: 15px 30px;
-  font-size: 20px;
-  border-radius: 10px;
-}
-</style>
+    <title>QR Access System</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f2f2f2;
+        }
+        #reader {
+            width: 300px;
+            margin: 20px auto;
+        }
+        #access {
+            display: none;
+            font-size: 32px;
+            font-weight: bold;
+            color: green;
+            margin-top: 20px;
+        }
+    </style>
 </head>
-
 <body>
 
-<h1>NFC Access Verification</h1>
-<button id="scanBtn">Tap to Scan NFC Card</button>
+    <h2>QR Scanner</h2>
 
-<div id="status"></div>
+    <div id="reader"></div>
 
-<script>
-document.getElementById("scanBtn").onclick = async () => {
-  if (!("NDEFReader" in window)) {
-    alert("Web NFC not supported on this device!");
-    return;
-  }
+    <div id="access">✔ ACCESS GRANTED</div>
 
-  try {
-    const ndef = new NDEFReader();
-    await ndef.scan();
+    <script>
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log(`QR Code detected: ${decodedText}`);
 
-    document.getElementById("status").innerText = "Scanning... Tap your card";
+            // Stop scanning after success
+            html5QrcodeScanner.clear();
 
-    ndef.onreading = event => {
-      const message = event.message;
-      let fullData = "";
+            document.getElementById("access").style.display = "block";
+            document.getElementById("access").style.color = "green";
+            document.getElementById("access").innerText = "✔ ACCESS GRANTED";
+        }
 
-      for (const record of message.records) {
-        const textDecoder = new TextDecoder(record.encoding || "utf-8");
-        fullData += textDecoder.decode(record.data);
-      }
+        function onScanFailure(error) {
+            // Ignore scan errors
+        }
 
-      console.log("NFC Data:", fullData);
+        // Create scanner
+        const html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader",
+            { fps: 10, qrbox: 250 },
+            false
+        );
 
-      // Your matching logic (use last 4 digits or keyword)
-      if (fullData.includes("4211")) {
-        document.getElementById("status").innerText = "ACCESS GIVEN ✅";
-        document.body.style.background = "#c8ffc8";
-      } else {
-        document.getElementById("status").innerText = "ACCESS DENIED ❌";
-        document.body.style.background = "#ffc8c8";
-      }
-    };
-
-  } catch (error) {
-    alert("NFC scan failed: " + error);
-  }
-};
-</script>
+        // Start scanning
+        html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+    </script>
 
 </body>
 </html>
