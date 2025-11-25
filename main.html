@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Card Access System</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  margin-top: 80px;
+}
+#status {
+  font-size: 30px;
+  margin-top: 40px;
+  font-weight: bold;
+}
+button {
+  padding: 15px 30px;
+  font-size: 20px;
+  border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>NFC Access Verification</h1>
+<button id="scanBtn">Tap to Scan NFC Card</button>
+
+<div id="status"></div>
+
+<script>
+document.getElementById("scanBtn").onclick = async () => {
+  if (!("NDEFReader" in window)) {
+    alert("Web NFC not supported on this device!");
+    return;
+  }
+
+  try {
+    const ndef = new NDEFReader();
+    await ndef.scan();
+
+    document.getElementById("status").innerText = "Scanning... Tap your card";
+
+    ndef.onreading = event => {
+      const message = event.message;
+      let fullData = "";
+
+      for (const record of message.records) {
+        const textDecoder = new TextDecoder(record.encoding || "utf-8");
+        fullData += textDecoder.decode(record.data);
+      }
+
+      console.log("NFC Data:", fullData);
+
+      // Your matching logic (use last 4 digits or keyword)
+      if (fullData.includes("4211")) {
+        document.getElementById("status").innerText = "ACCESS GIVEN ✅";
+        document.body.style.background = "#c8ffc8";
+      } else {
+        document.getElementById("status").innerText = "ACCESS DENIED ❌";
+        document.body.style.background = "#ffc8c8";
+      }
+    };
+
+  } catch (error) {
+    alert("NFC scan failed: " + error);
+  }
+};
+</script>
+
+</body>
+</html>
